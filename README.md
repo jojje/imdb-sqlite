@@ -18,7 +18,7 @@ The program relies on the following IMDB tab separated files:
 
 ## Usage
 
-    usage: imdb-sqlite [-h] [--db DB] [--cache-dir CACHE_DIR] [--verbose]
+    usage: imdb-sqlite [OPTIONS]
     
     Imports imdb tsv interface files into a new sqlitedatabase. Fetches them from
     imdb if not present onthe machine.
