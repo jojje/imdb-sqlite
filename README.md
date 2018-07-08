@@ -34,6 +34,13 @@ The program relies on the following IMDB tab separated files:
 Just run the program with no arguments, and you'll get a file named `imdb.db`
 in the current working directory.
 
+### Hints
+* Make sure the disk the database is written to has sufficient space.
+  About 5 GiB is needed.
+* Use a SSD to speed up the import.
+* To check the best case import performance, use an in-memory database: 
+  `--db :memory:`.
+
 ## Example
 
     $ imdb-sqlite
@@ -82,11 +89,17 @@ process.
 The above example used python 3.6.4 on windows 7, with the working directory
 being on a SSD.  
 
-## Hints
-* Make sure the disk the database is written to has sufficient space.
-  About 5 GiB is needed.
-* Use a SSD to speed up the import.
-* To check the best case import performance, use an in-memory database: 
-  `--db :memory:`.
+## PyPI
+Current status of the project is: 
+[![Build Status](https://travis-ci.org/jojje/imdb-sqlite.png)](https://travis-ci.org/jojje/imdb-sqlite)
+
+This project uses an automated build and release process.
+The module in the [pypi][2] repository is automatically built and released from
+the github source, upon any version tagged commit to the master branch.
+
+Click the status link and check out the logs if you're interested in the
+package lineage; meaning how the released pypi module was constructed from
+source.
 
 [1]: https://www.imdb.com/interfaces/
+[2]: https://pypi.org/project/imdb-sqlite/
