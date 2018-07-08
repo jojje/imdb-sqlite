@@ -122,6 +122,9 @@ class Database:
             logger.info('Applying schema')
             self.create_tables()
 
+        # using a cursor is a smidgen faster, due to fewer function calls
+        self.cursor = self.connection.cursor()
+
     def create_tables(self):
         sqls = [self._create_table_sql(table, mapping.values())
                 for table, mapping in TSV_TABLE_MAP.values()]
@@ -131,7 +134,7 @@ class Database:
 
     def begin(self):
         logger.debug('TX BEGIN')
-        return self.connection.execute('BEGIN')
+        return self.cursor.execute('BEGIN')
 
     def commit(self):
         logger.debug('TX COMMIT')
@@ -141,11 +144,13 @@ class Database:
         self.connection.rollback()
 
     def execute(self, sql, values=None):
-        logger.debug('{sql} = {values}'.format(sql=sql, values=values))
-        return self.connection.execute(sql, values)
+        if logger.isEnabledFor(logging.DEBUG):  # Speedup for hot code path
+            logger.debug('{sql} = {values}'.format(sql=sql, values=values))
+        return self.cursor.execute(sql, values)
 
     def close(self):
         logger.debug('DB CLOSE')
+        self.cursor.close()
         self.connection.close()
 
     @staticmethod
