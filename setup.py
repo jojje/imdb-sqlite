@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='imdb-sqlite',
-    version='0.1.2',
+    version='0.1.3',
     author='Jonas Tingeborn',
     author_email='tinjon+pip@gmail.com',
     description='Imports IMDB TSV files into a SQLite database',
