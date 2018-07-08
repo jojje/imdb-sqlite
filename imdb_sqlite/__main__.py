@@ -132,6 +132,14 @@ class Database:
         logger.debug(sql)
         self.connection.executescript(sql)
 
+    def create_indices(self):
+        sqls = [self._create_index_sql(table, mapping.values())
+                for table, mapping in TSV_TABLE_MAP.values()]
+        sql = '\n'.join([s for s in sqls if s])
+        logger.debug(sql)
+        self.connection.executescript(sql)
+        self.commit()
+
     def begin(self):
         logger.debug('TX BEGIN')
         return self.cursor.execute('BEGIN')
@@ -168,14 +176,15 @@ class Database:
         lines.append(',\n'.join(cols))
         lines.append(');')
 
-        # Add indexes
-        lines += ['CREATE INDEX ix_{table}_{col} ON {table} ({col});'
-                  .format(table=table_name, col=c.name)
-                  for c in columns
-                  if c.index and not c.pk and not c.unique]
-
         return '\n'.join(lines) + '\n'
 
+    @staticmethod
+    def _create_index_sql(table_name, columns):
+        lines = ['CREATE INDEX ix_{table}_{col} ON {table} ({col});'
+                     .format(table=table_name, col=c.name)
+                 for c in columns
+                 if c.index and not c.pk and not c.unique]
+        return '\n'.join(lines)
 
 def ensure_downloaded(files, cache_dir):
     """
@@ -297,6 +306,9 @@ def main():
         table, column_mapping = table_mapping
         import_file(db, os.path.join(opts.cache_dir, filename),
                     table, column_mapping)
+
+    logger.info('Creating table indices ...')
+    db.create_indices()
 
     db.close()
     logger.info('Import successful')
