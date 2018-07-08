@@ -181,10 +181,11 @@ class Database:
     @staticmethod
     def _create_index_sql(table_name, columns):
         lines = ['CREATE INDEX ix_{table}_{col} ON {table} ({col});'
-                     .format(table=table_name, col=c.name)
+                 .format(table=table_name, col=c.name)
                  for c in columns
                  if c.index and not c.pk and not c.unique]
         return '\n'.join(lines)
+
 
 def ensure_downloaded(files, cache_dir):
     """
