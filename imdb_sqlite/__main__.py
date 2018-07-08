@@ -225,11 +225,15 @@ def tsv(f, null='\\N'):
 
 
 def count_lines(f):
-    """Count lines in an iterable"""
-    i = 0
-    for _ in f:
-        i += 1
-    return i
+    """Count lines in a byte iterable"""
+    lf = "\n".encode()
+    chunk_size = 1 << 20
+    lines = 0
+    chunk = f.read(chunk_size)
+    while chunk:
+        lines += chunk.count(lf)
+        chunk = f.read(chunk_size)
+    return lines
 
 
 def import_file(db, filename, table, column_mapping):
