@@ -124,6 +124,7 @@ class Database:
 
         # using a cursor is a smidgen faster, due to fewer function calls
         self.cursor = self.connection.cursor()
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
 
     def create_tables(self):
         sqls = [self._create_table_sql(table, mapping.values())
@@ -152,8 +153,9 @@ class Database:
         self.connection.rollback()
 
     def execute(self, sql, values=None):
-        if logger.isEnabledFor(logging.DEBUG):  # Speedup for hot code path
+        if self.debug_enabled:
             logger.debug('{sql} = {values}'.format(sql=sql, values=values))
+
         return self.cursor.execute(sql, values)
 
     def close(self):
