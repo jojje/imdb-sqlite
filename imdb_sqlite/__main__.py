@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# imdb-to-sqlite - Imports IMDB TSV files into a SQLite database
+# imdb-sqlite - Imports IMDB TSV files into a SQLite database
 # Copyright (C) 2018  Jonas Tingeborn
 #
 # This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@ import shutil
 import sqlite3
 import sys
 from collections import OrderedDict
+from contextlib import contextmanager
+
 from tqdm import tqdm
 
 try:
@@ -217,6 +219,20 @@ def import_file(db, filename, table, column_mapping):
     """
     Import a imdb file into a given table, using a specific tsv value to column mapping
     """
+    fopen = gzip.open if filename.endswith('.gz') else open
+
+    @contextmanager
+    def text_open(fn, encoding='utf-8'):
+        """Yields utf-8 decoded strings, one per line, from a [gzipped] text file"""
+        try:
+            # Fast python3 text decoding
+            with fopen(fn, 'rt', encoding=encoding) as tf:
+                yield tf
+        except TypeError:
+            # Fallback to slower python2 compatible variant
+            with fopen(filename, 'rb') as bf:
+                yield (b.decode('utf-8') for b in bf)
+
     logger.info('Importing file: {}'.format(filename))
 
     headers = column_mapping.keys()
@@ -227,7 +243,6 @@ def import_file(db, filename, table, column_mapping):
         columns=', '.join(columns),
         values=','.join(placeholders)
     )
-    fopen = gzip.open if filename.endswith('.gz') else open
 
     logger.info('Reading number of rows ...')
     with fopen(filename, 'rb') as f:
@@ -236,8 +251,7 @@ def import_file(db, filename, table, column_mapping):
     logger.info('Inserting rows into table: {}'.format(table))
     db.begin()
     try:
-        with fopen(filename, 'rb') as f:
-            tf = (b.decode('utf-8') for b in f)  # to text lines
+        with text_open(filename) as tf:
             for row in tqdm(tsv(tf), total=total_rows, unit=' rows'):
                 values = [row[h] for h in headers if h in row]
                 db.execute(sql, list(values))
