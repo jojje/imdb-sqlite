@@ -92,8 +92,8 @@ TSV_TABLE_MAP = OrderedDict([
         ]))),
     ('title.episode.tsv.gz',
         ('episodes', OrderedDict([
-            ('tconst',            Column(name='episode_title_id', type='INTEGER', index=True)),
-            ('parentTconst',      Column(name='show_title_id', type='INTEGER', index=True)),
+            ('tconst',            Column(name='episode_title_id', index=True)),
+            ('parentTconst',      Column(name='show_title_id', index=True)),
             ('seasonNumber',      Column(name='season_number', type='INTEGER')),
             ('episodeNumber',     Column(name='eposide_number', type='INTEGER')),
         ]))),
