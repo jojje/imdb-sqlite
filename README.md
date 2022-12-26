@@ -91,7 +91,8 @@ being on a SSD.
 
 ## PyPI
 Current status of the project is: 
-[![Build Status](https://travis-ci.org/jojje/imdb-sqlite.png)](https://travis-ci.org/jojje/imdb-sqlite)
+[![Build Status](https://github.com/jojje/imdb-sqlite/actions/workflows/python-publish.yml/badge.svg)](https://github.com/jojje/imdb-sqlite/actions/workflows/python-publish.yml)
+
 
 This project uses an automated build and release process.
 The module in the [pypi][2] repository is automatically built and released from
