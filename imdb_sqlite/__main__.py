@@ -220,7 +220,7 @@ def tsv(f, null='\\N'):
     """
     headers = [x.strip() for x in next(f).split("\t")]
     for s in f:
-        values = [(x.strip() if x and x != null else None) for x in s.split("\t")]
+        values = [(x.strip() if x and x != null else None) for x in s.rstrip().split("\t")]
         yield dict(zip(headers, values))
 
 
