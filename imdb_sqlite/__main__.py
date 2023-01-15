@@ -86,7 +86,7 @@ TSV_TABLE_MAP = OrderedDict([
         ('crew', OrderedDict([
             ('tconst',            Column(name='title_id', index=True)),
             ('nconst',            Column(name='person_id', index=True)),
-            ('category',          Column(name='category')),
+            ('category',          Column(name='category', index=True)),
             ('job',               Column(name='job')),
             ('characters',        Column(name='characters')),
         ]))),
