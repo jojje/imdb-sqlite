@@ -186,7 +186,7 @@ to essentially do brute force scans through all those duplicates. It's not much
 else it can do, and this takes time. Normalizing away such duplicates _will_
 mean more joins are required, but it should hopefully allow the engine to more
 quickly whittle down the dataset. I've not tried this, but it seems something
-plausible to invetigate if your queries are too slow for your taste.
+plausible to investigate if your queries are too slow for your taste.
 
 Finally, when in doubt. Prefix your query with the `EXPLAIN QUERY PLAN`. If you
 see `SCAN TABLE` in there, particularly in the beginning, it means the DB is
