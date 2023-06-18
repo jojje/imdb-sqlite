@@ -102,7 +102,8 @@ reference it is in order.
 
 A movie has a title, a TV show has one. An episode has one as well. Well two
 actually; the title of the show, and the title of the episode itself. That is
-why there are two links to the same `title_id` attribute in the `titles` table.
+why there are two links to the same `title_id` attribute in the `titles` table,
+from the `episodes` table.
 
 To make the relationships a bit clearer, following are a few query examples
 
