@@ -294,9 +294,12 @@ def main():
                     'the machine.'
     )
     parser.add_argument('--db', metavar='FILE', default='imdb.db',
-                        help='Connection URI for the database to import into.')
+                        help='Connection URI for the database to import into')
     parser.add_argument('--cache-dir', metavar='DIR', default='downloads',
-                        help='Download cache dir where the tsv files from imdb will be stored before the import.')
+                        help='Download cache dir where the tsv files from imdb will be stored before the import')
+    parser.add_argument('--no-index', action='store_true',
+                        help='Do not create any indices. Massively slower joins, but cuts the DB file size '
+                             'approximately in half')
     parser.add_argument('--verbose', action='store_true',
                         help='Show database interaction')
     opts = parser.parse_args()
@@ -318,8 +321,9 @@ def main():
         import_file(db, os.path.join(opts.cache_dir, filename),
                     table, column_mapping)
 
-    logger.info('Creating table indices ...')
-    db.create_indices()
+    if not opts.no_index:
+        logger.info('Creating table indices ...')
+        db.create_indices()
 
     logger.info('Analyzing DB to generate statistic for query planner ...')
     db.analyze()

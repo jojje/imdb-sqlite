@@ -25,10 +25,11 @@ The program relies on the following IMDB tab separated files:
     
     optional arguments:
       -h, --help       show this help message and exit
-      --db FILE        Connection URI for the database to import into. (default:
-                       imdb.db)
-      --cache-dir DIR  Download cache dir where the tsv files from imdb will be
-                       stored before the import. (default: downloads)
+      --db FILE        Connection URI for the database to import into (default: imdb.db)
+      --cache-dir DIR  Download cache dir where the tsv files from imdb will be stored
+                       before the import (default: downloads)
+      --no-index       Do not create any indices. Massively slower joins, but cuts the DB
+                       file size approximately in half (default: False)
       --verbose        Show database interaction (default: False)
 
 Just run the program with no arguments, and you'll get a file named `imdb.db`
@@ -169,6 +170,24 @@ or using autoindex and rerun the query plan. Hopefully that results in a
 massive query speedup.
 
 For example `sqlite3 imdb.db "CREATE INDEX myindex ON <table-name> (<slow-column>)"`
+
+### Disk space tips
+The imported data as of 2023 produces a database file that is about 12 GiB.
+About half of that space is for indices used to speed up query lookups and
+joins. The default indices take up about as much as the data.
+
+To cater for use cases where people just want to use the tool as part of some
+ETL-step, for refreshing the dataset every now and then, and then simply export
+the full tables (e.g. for data science using pandas/ML), a `--no-index` flag is
+available. When specifying this flag, no indices will be created, which not
+only saves about 50% disk space, but also speeds up the overall import process.
+When this flag is provided, the DB file will be just shy of 6 GiB as of date of
+writing.
+
+If you know precisely which indices you need, omitting the default indices may
+also be a good idea, since you'd then not waste disk space on indices you don't
+need. Simply create the indices you _do_ need manually, as illustrated in the
+performance tip above.
 
 ## PyPI
 Current status of the project is:
