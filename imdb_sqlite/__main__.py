@@ -138,7 +138,8 @@ class Database:
                 for table, mapping in TSV_TABLE_MAP.values()]
         sql = '\n'.join([s for s in sqls if s])
         logger.debug(sql)
-        self.connection.executescript(sql)
+        for stmt in tqdm(sql.split('\n'), unit='index'):
+            self.connection.executescript(stmt)
         self.commit()
 
     def analyze(self):
