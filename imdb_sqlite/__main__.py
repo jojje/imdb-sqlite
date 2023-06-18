@@ -55,7 +55,7 @@ class Column:
 TSV_TABLE_MAP = OrderedDict([
     ('name.basics.tsv.gz',
         ('people', OrderedDict([
-            ('nconst',            Column(name='person_id', type='VARCHAR PRIMARY KEY')),
+            ('nconst',            Column(name='person_id', type='VARCHAR PRIMARY KEY', index=True)),
             ('primaryName',       Column(name='name', index=True)),
             ('birthYear',         Column(name='born', type='INTEGER')),
             ('deathYear',         Column(name='died', type='INTEGER')),
@@ -141,6 +141,9 @@ class Database:
         self.connection.executescript(sql)
         self.commit()
 
+    def analyze(self):
+        self.connection.executescript("ANALYZE;")
+
     def begin(self):
         logger.debug('TX BEGIN')
         return self.cursor.execute('BEGIN')
@@ -185,7 +188,7 @@ class Database:
         lines = ['CREATE INDEX ix_{table}_{col} ON {table} ({col});'
                  .format(table=table_name, col=c.name)
                  for c in columns
-                 if c.index and not c.pk and not c.unique]
+                 if c.index]
         return '\n'.join(lines)
 
 
@@ -316,6 +319,9 @@ def main():
 
     logger.info('Creating table indices ...')
     db.create_indices()
+
+    logger.info('Analyzing DB to generate statistic for query planner ...')
+    db.analyze()
 
     db.close()
     logger.info('Import successful')

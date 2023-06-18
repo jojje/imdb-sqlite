@@ -158,42 +158,15 @@ production. The current set of crew categories are:
 ```
 
 ### Performance tips
-Many relations over a ten gigabyte database is where a relational
-DB really starts showing its limits. The above query takes quite a while to run.
-Optimally a graph DB would be used instead, since the query is more of that
-nature. Some things can still be done to get an _OK_ response time. If you use
-IDs instead of names, some joins can be eliminated. For example by using the
-IMDB IDs for Pacino and De Niro instead of searching for them by name, the above
-query is sped up by an order of magnitude or so, by eliminating the index search
-through two people tables.
-
-```sql
-SELECT t.title_id, t.type, t.primary_title, t.premiered, t.genres,
-       c1.characters AS 'Pacino played', c2.characters AS 'Deniro played'
-FROM crew c1
-INNER JOIN crew c2 ON ( c1.title_id = c2.title_id  )
-INNER JOIN titles t ON ( c2.title_id = t.title_id  )
-WHERE c1.person_id = 'nm0000199' -- Pacino
-AND   c2.person_id = 'nm0000134' -- De Niro
-AND   c1.category = 'actor' AND c2.category = 'actor'
-```
-
-Another thing to try is to further normalize the data. There is quite some
-duplication in the data, such at title types, crew categories etc. That
-duplication prevents the DB from efficiently joining tables. Even though a lot
-of indices are used, any collection of duplicates in a column forces the engine
-to essentially do brute force scans through all those duplicates. It's not much
-else it can do, and this takes time. Normalizing away such duplicates _will_
-mean more joins are required, but it should hopefully allow the engine to more
-quickly whittle down the dataset. I've not tried this, but it seems something
-plausible to investigate if your queries are too slow for your taste.
-
-Finally, when in doubt. Prefix your query with the `EXPLAIN QUERY PLAN`. If you
-see `SCAN TABLE` in there, particularly in the beginning, it means the DB is
-doing a brute-force search through all the data in the column. This is _very_
-slow. You want the query plan to say `SEARCH` everywhere. Create an index for
-the column indicated as being scanned and rerun the query plan. Hopefully that
-resulted in orders of magnitude query speed improvement.
+Prefix your query with the `EXPLAIN QUERY PLAN`. If you see `SCAN TABLE` in
+there, particularly in the beginning, it means the DB is doing a brute-force
+search through all the data in the column. This is _very_ slow. You want the
+query plan to say `SEARCH` everywhere. If the query shows autoindex rather than
+using an explicit index, then that may also be the cause for slow joins. The
+tables are very large, which can result in a lot of I/O without explicit
+indices. To resolve, create an index for the column indicated as being scanned
+or using autoindex and rerun the query plan. Hopefully that results in a
+massive query speedup.
 
 For example `sqlite3 imdb.db "CREATE INDEX myindex ON <table-name> (<slow-column>)"`
 
