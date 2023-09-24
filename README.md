@@ -37,7 +37,7 @@ in the current working directory.
 
 ### Hints
 * Make sure the disk the database is written to has sufficient space.
-  About 5 GiB is needed.
+  About 12 GiB is needed.
 * Use a SSD to speed up the import.
 * To check the best case import performance, use an in-memory database: 
   `--db :memory:`.
