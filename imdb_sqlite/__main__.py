@@ -241,7 +241,7 @@ def count_lines(f):
     return lines
 
 
-def import_file(db, filename, table, column_mapping):
+def import_file(db, filename, table, column_mapping, rm_tsv):
     """
     Import a imdb file into a given table, using a specific tsv value to column mapping
     """
@@ -286,6 +286,10 @@ def import_file(db, filename, table, column_mapping):
         db.rollback()
         raise
 
+    if rm_tsv:
+        logger.info('Deleting file: {}'.format(filename))
+        os.remove(filename)
+
 
 def filter_table_subset(table_map, wanted_tables):
     def split_csv(s): return [v for v in (v.strip() for v in s.split(',')) if v]
@@ -309,6 +313,8 @@ def main():
                         help='Connection URI for the database to import into')
     parser.add_argument('--cache-dir', metavar='DIR', default='downloads',
                         help='Download cache dir where the tsv files from imdb will be stored before the import')
+    parser.add_argument('--rm-tsv', action='store_true',
+                        help='Delete tsv after sql import. Useful if storage is limited')
     parser.add_argument('--no-index', action='store_true',
                         help='''Do not create any indices. Massively slower joins, but cuts the DB file size
                                 approximately in half''')
@@ -336,7 +342,7 @@ def main():
     for filename, table_mapping in table_map.items():
         table, column_mapping = table_mapping
         import_file(db, os.path.join(opts.cache_dir, filename),
-                    table, column_mapping)
+                    table, column_mapping, opts.rm_tsv)
 
     if not opts.no_index:
         logger.info('Creating table indices ...')
