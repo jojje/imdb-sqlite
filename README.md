@@ -226,7 +226,7 @@ you don't need all the aliases for all the titles, like the portuguese title of
 some bollywood flick, then the akas can also be skipped. Getting rid of those
 two tables shaves off 3/4 of the required space. That's significant.
 
-If you don't care about characters, and just want to query moves or shows, their
+If you don't care about characters, and just want to query movies or shows, their
 ratings and perhaps per-episode ratings as well, then 2 GiB of storage suffices
 as you only need tables titles, episodes and ratings. However if you actually
 want to query those tables as well, then you'd want to create indices, either
