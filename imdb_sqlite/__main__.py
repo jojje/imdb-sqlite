@@ -207,7 +207,7 @@ def ensure_downloaded(files, cache_dir):
         ofn = os.path.join(cache_dir, filename)
 
         if os.path.exists(ofn):
-            return
+            continue
 
         logger.info('GET %s -> %s', url, ofn)
         with urlopen(url) as response:
