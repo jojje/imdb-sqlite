@@ -134,7 +134,7 @@ the following:
 ```sql
 -- // table aliases: st = show-title, et = episode-title
 SELECT st.primary_title, st.premiered, st.genres, e.season_number,
-       e.eposide_number, et.primary_title, r.rating, r.votes
+       e.episode_number, et.primary_title, r.rating, r.votes
 FROM  titles AS st
 INNER JOIN       episodes  e ON ( e.show_title_id = st.title_id )
 INNER JOIN       titles   et ON ( e.episode_title_id = et.title_id )
