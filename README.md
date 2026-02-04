@@ -20,8 +20,8 @@ The program relies on the following IMDB tab separated files:
 
     usage: imdb-sqlite [OPTIONS]
     
-    Imports imdb tsv interface files into a new sqlitedatabase. Fetches them from
-    imdb if not present onthe machine.
+    Imports imdb tsv interface files into a new sqlit database. Fetches them from imdb
+    if not present on the machine.
     
     optional arguments:
       -h, --help       show this help message and exit
@@ -29,15 +29,19 @@ The program relies on the following IMDB tab separated files:
       --cache-dir DIR  Download cache dir where the tsv files from imdb will be stored
                        before the import (default: downloads)
       --no-index       Do not create any indices. Massively slower joins, but cuts the DB
-                       file size approximately in half (default: False)
-      --verbose        Show database interaction (default: False)
+                       file size approximately in half
+      --only TABLES    Import only some tables. The tables to import are specified using
+                       a comma delimited list, such as "people,titles". Use it to save
+                       storage space.
+      --verbose        Show database interaction
 
 Just run the program with no arguments, and you'll get a file named `imdb.db`
 in the current working directory.
 
 ### Hints
 * Make sure the disk the database is written to has sufficient space.
-  About 5 GiB is needed.
+  About 19 GiB is needed as of early 2026. About 9.5 GB without indices.
+  (for even less storage requirement, see Disk space tips below).
 * Use a SSD to speed up the import.
 * To check the best case import performance, use an in-memory database: 
   `--db :memory:`.
@@ -45,50 +49,53 @@ in the current working directory.
 ## Example
 
     $ imdb-sqlite
+
+    2026-02-04 16:30:31,311 Populating database: imdb.db
+    2026-02-04 16:30:31,319 Applying schema
+
+    2026-02-04 16:30:31,323 Importing file: downloads\name.basics.tsv.gz
+    2026-02-04 16:30:31,324 Reading number of rows ...
+    2026-02-04 16:30:34,373 Inserting rows into table: people
+    100%|██████████████████| 15063390/15063390 [01:05<00:00, 228659.33 rows/s]
     
-    2018-07-08 16:00:00,000 Populating database: imdb.db
-    2018-07-08 16:00:00,001 Applying schema
-    
-    2018-07-08 16:00:00,005 Importing file: downloads\name.basics.tsv.gz
-    2018-07-08 16:00:00,005 Reading number of rows ...
-    2018-07-08 16:00:11,521 Inserting rows into table: people
-    100%|█████████████████████████| 8699964/8699964 [01:23<00:00, 104387.75 rows/s]
-    
-    2018-07-08 16:01:34,868 Importing file: downloads\title.basics.tsv.gz
-    2018-07-08 16:01:34,868 Reading number of rows ...
-    2018-07-08 16:01:41,873 Inserting rows into table: titles
-    100%|██████████████████████████| 5110779/5110779 [00:58<00:00, 87686.98 rows/s]
-    
-    2018-07-08 16:02:40,161 Importing file: downloads\title.akas.tsv.gz
-    2018-07-08 16:02:40,161 Reading number of rows ...
-    2018-07-08 16:02:44,743 Inserting rows into table: akas
-    100%|██████████████████████████| 3625334/3625334 [00:37<00:00, 97412.94 rows/s]
-    
-    2018-07-08 16:03:21,964 Importing file: downloads\title.principals.tsv.gz
-    2018-07-08 16:03:21,964 Reading number of rows ...
-    2018-07-08 16:03:55,922 Inserting rows into table: crew
-    100%|███████████████████████| 28914893/28914893 [03:45<00:00, 128037.21 rows/s]
-    
-    2018-07-08 16:07:41,757 Importing file: downloads\title.episode.tsv.gz
-    2018-07-08 16:07:41,757 Reading number of rows ...
-    2018-07-08 16:07:45,370 Inserting rows into table: episodes
-    100%|█████████████████████████| 3449903/3449903 [00:21<00:00, 158265.16 rows/s]
-    
-    2018-07-08 16:08:07,172 Importing file: downloads\title.ratings.tsv.gz
-    2018-07-08 16:08:07,172 Reading number of rows ...
-    2018-07-08 16:08:08,029 Inserting rows into table: ratings
-    100%|███████████████████████████| 846901/846901 [00:05<00:00, 152421.27 rows/s]
-    
-    2018-07-08 16:08:13,589 Creating table indices ...
-    2018-07-08 16:09:16,451 Import successful
+    2026-02-04 16:31:40,262 Importing file: downloads\title.basics.tsv.gz
+    2026-02-04 16:31:40,262 Reading number of rows ...
+    2026-02-04 16:31:42,777 Inserting rows into table: titles
+    100%|██████████████████| 12265715/12265715 [01:06<00:00, 185564.42 rows/s]
+
+    2026-02-04 16:32:48,879 Importing file: downloads\title.akas.tsv.gz
+    2026-02-04 16:32:48,880 Reading number of rows ...
+    2026-02-04 16:32:54,646 Inserting rows into table: akas
+    100%|██████████████████| 54957563/54957563 [04:06<00:00, 222556.12 rows/s]
+
+    2026-02-04 16:37:01,586 Importing file: downloads\title.principals.tsv.gz
+    2026-02-04 16:37:01,587 Reading number of rows ...
+    2026-02-04 16:37:11,294 Inserting rows into table: crew
+    100%|██████████████████| 97617046/97617046 [06:27<00:00, 251790.20 rows/s]
+
+    2026-02-04 16:43:38,990 Importing file: downloads\title.episode.tsv.gz
+    2026-02-04 16:43:38,990 Reading number of rows ...
+    2026-02-04 16:43:39,635 Inserting rows into table: episodes
+    100%|████████████████████| 9462887/9462887 [00:29<00:00, 315650.53 rows/s]
+
+    2026-02-04 16:44:09,618 Importing file: downloads\title.ratings.tsv.gz
+    2026-02-04 16:44:09,618 Reading number of rows ...
+    2026-02-04 16:44:09,706 Inserting rows into table: ratings
+    100%|████████████████████| 1631810/1631810 [00:05<00:00, 304073.42 rows/s]
+
+    2026-02-04 16:44:15,077 Creating table indices ...
+    100%|██████████████████████████████████| 12/12 [03:19<00:00, 16.64s/index]
+
+    2026-02-04 16:47:34,781 Analyzing DB to generate statistic for query planner ...
+    2026-02-04 16:48:01,367 Import successful
 
 
 ### Note
 The import may take a long time, since there are millions of records to
 process.
 
-The above example used python 3.6.4 on windows 7, with the working directory
-being on a SSD.
+The above example used python 3.10.13 on windows 10, with the working directory
+being on a fast Kingston NVME SSD.
 
 ## Data model
 
@@ -173,7 +180,7 @@ massive query speedup.
 For example `sqlite3 imdb.db "CREATE INDEX myindex ON <table-name> (<slow-column>)"`
 
 ### Disk space tips
-The imported data as of 2023 produces a database file that is about 12 GiB.
+The imported data as of 2026 produces a database file that is about 19 GiB.
 About half of that space is for indices used to speed up query lookups and
 joins. The default indices take up about as much as the data.
 
@@ -182,13 +189,50 @@ ETL-step, for refreshing the dataset every now and then, and then simply export
 the full tables (e.g. for data science using pandas/ML), a `--no-index` flag is
 available. When specifying this flag, no indices will be created, which not
 only saves about 50% disk space, but also speeds up the overall import process.
-When this flag is provided, the DB file will be just shy of 6 GiB as of date of
+When this flag is provided, the DB file will be just 9.5 GiB as of date of
 writing.
 
 If you know precisely which indices you need, omitting the default indices may
 also be a good idea, since you'd then not waste disk space on indices you don't
 need. Simply create the indices you _do_ need manually, as illustrated in the
 performance tip above.
+
+As an indicator, following is the current space consumption spread across the tables.
+
+Full import
+
+* default (includes indices): 19 GB
+* without indices: 9.5 GB
+
+Sizes of the respective tables when doing selective import of only a single
+table without indices.
+
+```
+* crew:     46% (4.4 GB)
+* akas:     28% (2.7 GB)
+* titles:   14% (1.3 GB)
+* people:    8% (0.8 GB)
+* episodes:  3% (0.3 GB)
+* ratings:   1% (0.1 GB)
+```
+
+Percentages are the relative space consumption of the full index-free import
+(~9.5 GB).
+
+Fair to say, "who played what character", or "fetched a doughnut to what
+VIP-of-wasting-space" accounts for about half the storage. If you can live
+without those details then there's a massive storage saving to be made. Also, if
+you don't need all the aliases for all the titles, like the portuguese title of
+some bollywood flick, then the akas can also be skipped. Getting rid of those
+two tables shaves off 3/4 of the required space. That's significant.
+
+If you don't care about characters, and just want to query moves or shows, their
+ratings and perhaps per-episode ratings as well, then 2 GiB of storage suffices
+as you only need tables titles, episodes and ratings. However if you actually
+want to query those tables as well, then you'd want to create indices, either
+manually or use the default. This ups the space requirement about 50% (3GB).
+I.e. just provide the command line argument `--only titles,ratings,episodes`.
+
 
 ## PyPI
 Current status of the project is:
