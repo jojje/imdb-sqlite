@@ -20,7 +20,7 @@ The program relies on the following IMDB tab separated files:
 
     usage: imdb-sqlite [OPTIONS]
     
-    Imports imdb tsv interface files into a new sqlit database. Fetches them from imdb
+    Imports imdb tsv interface files into a new sqlite database. Fetches them from imdb
     if not present on the machine.
     
     optional arguments:
@@ -144,7 +144,7 @@ AND   st.type = 'tvSeries'
 ORDER BY r.rating DESC
 ```
 
-**Find which productions both Robert Deniro and Al Pacino acted together on**
+**Find which productions both Robert De Niro and Al Pacino acted together on**
 ```sql
 SELECT t.title_id, t.type, t.primary_title, t.premiered, t.genres,
        c1.characters AS 'Pacino played', c2.characters AS 'Deniro played'
