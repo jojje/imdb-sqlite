@@ -109,7 +109,8 @@ TSV_TABLE_MAP = OrderedDict([
 class Database:
     """ Shallow DB abstraction """
 
-    def __init__(self, uri=':memory:'):
+    def __init__(self, table_map, uri=':memory:'):
+        self.table_map = table_map
         exists = os.path.exists(uri)
         self.connection = sqlite3.connect(uri, isolation_level=None)
         self.connection.executescript("""
@@ -128,14 +129,14 @@ class Database:
 
     def create_tables(self):
         sqls = [self._create_table_sql(table, mapping.values())
-                for table, mapping in TSV_TABLE_MAP.values()]
+                for table, mapping in self.table_map.values()]
         sql = '\n'.join(sqls)
         logger.debug(sql)
         self.connection.executescript(sql)
 
     def create_indices(self):
         sqls = [self._create_index_sql(table, mapping.values())
-                for table, mapping in TSV_TABLE_MAP.values()]
+                for table, mapping in self.table_map.values()]
         sql = '\n'.join([s for s in sqls if s])
         logger.debug(sql)
         for stmt in tqdm(sql.split('\n'), unit='index'):
@@ -286,11 +287,22 @@ def import_file(db, filename, table, column_mapping):
         raise
 
 
+def filter_table_subset(table_map, wanted_tables):
+    def split_csv(s): return [v for v in (v.strip() for v in s.split(',')) if v]
+
+    wanted_tables = split_csv(wanted_tables)
+    out = OrderedDict()
+    for filename, (table_name, table_spec) in table_map.items():
+        if table_name in wanted_tables:
+            out[filename] = (table_name, table_spec)
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description='Imports imdb tsv interface files into a new sqlite'
-                    'database. Fetches them from imdb if not present on'
+        description='Imports imdb tsv interface files into a new sqlite '
+                    'database. Fetches them from imdb if not present on '
                     'the machine.'
     )
     parser.add_argument('--db', metavar='FILE', default='imdb.db',
@@ -300,6 +312,9 @@ def main():
     parser.add_argument('--no-index', action='store_true',
                         help='Do not create any indices. Massively slower joins, but cuts the DB file size '
                              'approximately in half')
+    parser.add_argument('--only', metavar='TABLES',
+                        help='Import only a some tables. The tables to import are specified using a comma delimited '
+                             'list, such as "people,titles". Use it to save storage space.')
     parser.add_argument('--verbose', action='store_true',
                         help='Show database interaction')
     opts = parser.parse_args()
@@ -312,11 +327,13 @@ def main():
         logger.warning('DB already exists: ({db}). Refusing to modify. Exiting'.format(db=opts.db))
         return 1
 
-    ensure_downloaded(TSV_TABLE_MAP.keys(), opts.cache_dir)
-    logger.info('Populating database: {}'.format(opts.db))
-    db = Database(uri=opts.db)
+    table_map = filter_table_subset(TSV_TABLE_MAP, opts.only) if opts.only else TSV_TABLE_MAP
 
-    for filename, table_mapping in TSV_TABLE_MAP.items():
+    ensure_downloaded(table_map.keys(), opts.cache_dir)
+    logger.info('Populating database: {}'.format(opts.db))
+    db = Database(table_map=table_map, uri=opts.db)
+
+    for filename, table_mapping in table_map.items():
         table, column_mapping = table_mapping
         import_file(db, os.path.join(opts.cache_dir, filename),
                     table, column_mapping)
