@@ -100,7 +100,7 @@ TSV_TABLE_MAP = OrderedDict([
     ('title.ratings.tsv.gz',
         ('ratings', OrderedDict([
             ('tconst',            Column(name='title_id', type='VARCHAR PRIMARY KEY')),
-            ('averageRating',     Column(name='rating', type='INTEGER')),
+            ('averageRating',     Column(name='rating', type='REAL')),
             ('numVotes',          Column(name='votes', type='INTEGER')),
         ]))),
 ])
