@@ -85,6 +85,7 @@ TSV_TABLE_MAP = OrderedDict([
     ('title.principals.tsv.gz',
         ('crew', OrderedDict([
             ('tconst',            Column(name='title_id', index=True)),
+            ('ordering',          Column(name='ordering', type='INTEGER')),
             ('nconst',            Column(name='person_id', index=True)),
             ('category',          Column(name='category', index=True)),
             ('job',               Column(name='job')),
