@@ -242,7 +242,7 @@ def count_lines(f):
     return lines
 
 
-def import_file(db, filename, table, column_mapping):
+def import_file(db, filename, table, column_mapping, rm_tsv):
     """
     Import a imdb file into a given table, using a specific tsv value to column mapping
     """
@@ -287,6 +287,10 @@ def import_file(db, filename, table, column_mapping):
         db.rollback()
         raise
 
+    if rm_tsv:
+        logger.info('Deleting file: {}'.format(filename))
+        os.remove(filename)
+
 
 def filter_table_subset(table_map, wanted_tables):
     def split_csv(s): return [v for v in (v.strip() for v in s.split(',')) if v]
@@ -302,20 +306,22 @@ def filter_table_subset(table_map, wanted_tables):
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description='Imports imdb tsv interface files into a new sqlite '
-                    'database. Fetches them from imdb if not present on '
-                    'the machine.'
+        description='''Imports imdb tsv interface files into a new sqlite
+                       database. Fetches them from imdb if not present on
+                       the machine.'''
     )
     parser.add_argument('--db', metavar='FILE', default='imdb.db',
                         help='Connection URI for the database to import into')
     parser.add_argument('--cache-dir', metavar='DIR', default='downloads',
                         help='Download cache dir where the tsv files from imdb will be stored before the import')
+    parser.add_argument('--rm-tsv', action='store_true',
+                        help='Delete tsv after sql import. Useful if storage is limited')
     parser.add_argument('--no-index', action='store_true',
-                        help='Do not create any indices. Massively slower joins, but cuts the DB file size '
-                             'approximately in half')
+                        help='''Do not create any indices. Massively slower joins, but cuts the DB file size
+                                approximately in half''')
     parser.add_argument('--only', metavar='TABLES',
-                        help='Import only a some tables. The tables to import are specified using a comma delimited '
-                             'list, such as "people,titles". Use it to save storage space.')
+                        help='''Import only a some tables. The tables to import are specified using a comma delimited
+                                list, such as "people,titles". Use it to save storage space.''')
     parser.add_argument('--verbose', action='store_true',
                         help='Show database interaction')
     opts = parser.parse_args()
@@ -337,7 +343,7 @@ def main():
     for filename, table_mapping in table_map.items():
         table, column_mapping = table_mapping
         import_file(db, os.path.join(opts.cache_dir, filename),
-                    table, column_mapping)
+                    table, column_mapping, opts.rm_tsv)
 
     if not opts.no_index:
         logger.info('Creating table indices ...')
