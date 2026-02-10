@@ -160,7 +160,7 @@ class Database:
 
     def execute(self, sql, values=None):
         if self.debug_enabled:
-            logger.debug('{sql} = {values}'.format(sql=sql, values=values))
+            logger.debug(f'{sql} = {values}')
 
         return self.cursor.execute(sql, values)
 
@@ -171,16 +171,14 @@ class Database:
 
     @staticmethod
     def _create_table_sql(table_name, columns):
-        lines = ['CREATE TABLE %s (' % table_name]
+        lines = [f'CREATE TABLE {table_name} (']
 
         # Declare columns
-        cols = ('  {name} {type}{pk}{unique}{null}'.format(
-                    name=c.name,
-                    type=c.type,
-                    pk=(' PRIMARY KEY' if c.pk else ''),
-                    unique=(' UNIQUE' if c.unique and not c.pk else ''),
-                    null=(' NOT NULL' if c.pk or not c.null else ''),
-                ) for c in columns)
+        cols = (f'  {c.name} {c.type}'
+                f'{" PRIMARY KEY" if c.pk else ""}'
+                f'{" UNIQUE" if c.unique and not c.pk else ""}'
+                f'{" NOT NULL" if c.pk or not c.null else ""}'
+                for c in columns)
         lines.append(',\n'.join(cols))
         lines.append(');')
 
@@ -188,8 +186,8 @@ class Database:
 
     @staticmethod
     def _create_index_sql(table_name, columns):
-        lines = ['CREATE INDEX ix_{table}_{col} ON {table} ({col});'
-                 .format(table=table_name, col=c.name)
+        lines = [f'CREATE INDEX ix_{table_name}_{c.name} ON {table_name} ({c.name});'
+                 
                  for c in columns
                  if c.index]
         return '\n'.join(lines)
@@ -204,17 +202,17 @@ def ensure_downloaded(files, cache_dir):
         os.mkdir(cache_dir)
 
     for filename in files:
-        url = 'https://datasets.imdbws.com/{}'.format(filename)
+        url = f'https://datasets.imdbws.com/{filename}'
         ofn = os.path.join(cache_dir, filename)
 
         if os.path.exists(ofn):
             continue
 
-        logger.info('GET %s -> %s', url, ofn)
+        logger.info(f'GET {url} -> {ofn}')
         with urlopen(url) as response:
             if not response.status == 200:
-                raise RuntimeError('Failed to download "{url}". HTTP response code: '
-                                   '{code}'.format(url=url, code=response.status))
+                raise RuntimeError(f'Failed to download "{url}". HTTP response code: '
+                                   f'{response.status}')
             with open(ofn, 'wb') as f:
                 shutil.copyfileobj(response, f)
 
@@ -260,22 +258,18 @@ def import_file(db, filename, table, column_mapping):
             with fopen(filename, 'rb') as bf:
                 yield (b.decode('utf-8') for b in bf)
 
-    logger.info('Importing file: {}'.format(filename))
+    logger.info(f'Importing file: {filename}')
 
     headers = column_mapping.keys()
     columns = [c.name for c in column_mapping.values()]
     placeholders = ['?' for _ in columns]
-    sql = 'INSERT INTO {table} ({columns}) VALUES({values})'.format(
-        table=table,
-        columns=', '.join(columns),
-        values=','.join(placeholders)
-    )
+    sql = f'INSERT INTO {table} ({", ".join(columns)}) VALUES({",".join(placeholders)})'
 
     logger.info('Reading number of rows ...')
     with fopen(filename, 'rb') as f:
         total_rows = count_lines(f) - 1  # first line is header
 
-    logger.info('Inserting rows into table: {}'.format(table))
+    logger.info(f'Inserting rows into table: {table}')
     db.begin()
     try:
         with text_open(filename) as tf:
@@ -325,13 +319,13 @@ def main():
         logger.setLevel(logging.DEBUG)
 
     if os.path.exists(opts.db):
-        logger.warning('DB already exists: ({db}). Refusing to modify. Exiting'.format(db=opts.db))
+        logger.warning(f'DB already exists: ({opts.db}). Refusing to modify. Exiting')
         return 1
 
     table_map = filter_table_subset(TSV_TABLE_MAP, opts.only) if opts.only else TSV_TABLE_MAP
 
     ensure_downloaded(table_map.keys(), opts.cache_dir)
-    logger.info('Populating database: {}'.format(opts.db))
+    logger.info(f'Populating database: {opts.db}')
     db = Database(table_map=table_map, uri=opts.db)
 
     for filename, table_mapping in table_map.items():
